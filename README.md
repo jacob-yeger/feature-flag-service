@@ -11,31 +11,24 @@ A scalable Feature Flag system built with NestJS, optimized for high traffic and
 
 ## Prerequisites
 - **Node.js** (v18+)
-- **MongoDB** (running on localhost:27017)
-- **Redis** (running on localhost:6379)
+- **Docker** (Recommended)
 
-## Setup & Running
+## Quick Start (Docker)
+The easiest way to run the entire system (Mongo, Redis, API, Demo Service, UI).
 
-1. **Install Dependencies**
-   ```bash
-   npm install
-   # Install client dependencies
-   cd feature-flag-client && npm install && cd ..
-   # Install demo dependencies
-   cd demo-app && npm install && cd ..
-   ```
+```bash
+docker-compose up --build
+```
+Access the dashboard at `http://localhost:5173`.
 
-2. **Start Infrastructure** (if not already running)
-   ```bash
-   docker run -d -p 27017:27017 mongo
-   docker run -d -p 6379:6379 redis
-   ```
+## Quick Start (Manual)
+If you prefer running locally without containers for development:
 
-3. **Start the Service**
-   ```bash
-   npm run start:dev
-   ```
-   The service will run on `http://localhost:3000`.
+```bash
+./start-demo.sh
+# Use --install flag on first run:
+# ./start-demo.sh --install
+```
 
 ## Running the Demo
 The demo application launches 3 simulated clients to showcase different access patterns:
@@ -43,21 +36,13 @@ The demo application launches 3 simulated clients to showcase different access p
 2. **Real-time Client**: Listen for SSE updates instantly.
 3. **Filtered Client**: Fetches only flags starting with `beta`.
 
-To run the demo:
-```bash
-cd demo-app
-npm start
-```
-
 ## How to Verify
-1.  **Start the Demo app** (`npm start` inside `demo-app`).
-2.  **Create/Update a Flag** using the API or a tool like Postman:
-    ```bash
-    curl -X POST http://localhost:3000/feature-flags \
-      -H "Content-Type: application/json" \
-      -d '{"key": "new-feature", "isEnabled": true, "description": "Test flag"}'
-    ```
-3.  **Observers**:
-    - **SSE Client** should show the update *immediately*.
-    - **Polling Client** will update on the next interval (5s).
-    - **Filtered Client** will ignore it unless it starts with `beta`.
+1.  **Open Dashboard**: `http://localhost:5173`
+2.  **Toggle Flags**: Use the inputs to toggle/create flags.
+3.  **Observe**: Watch the real-time logs in the client cards.
+
+## Architecture
+- `feature-flag-service`: Core API (Port 3000)
+- `demo-service`: Backend-for-Frontend simulating microservices (Port 3001)
+- `demo-ui`: React Dashboard (Port 5173)
+- `feature-flag-client`: Isomorphic TypeScript client library.

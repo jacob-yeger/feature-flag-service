@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  feature-flag-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/feature-flags
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongo
+      - redis
+
+  demo-service:
+    build:
+      context: .
+      dockerfile: demo-service/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - FEATURE_FLAG_SERVICE_URL=http://feature-flag-service:3000
+    depends_on:
+      - feature-flag-service
+
+  demo-ui:
+    build:
+      context: .
+      dockerfile: demo-ui/Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - demo-service

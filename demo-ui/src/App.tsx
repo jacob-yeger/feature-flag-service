@@ -14,6 +14,7 @@ function App() {
   const [key, setKey] = useState('new-feature');
 
   useEffect(() => {
+    // In Docker, we map ports to localhost.
     const eventSource = new EventSource('http://localhost:3001/monitor/stream');
 
     eventSource.onmessage = (event) => {

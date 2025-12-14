@@ -12,22 +12,24 @@ export class MonitorService implements OnModuleInit, OnModuleDestroy {
 
     async onModuleInit() {
         // 1. Polling Client
+        const serviceUrl = process.env.FEATURE_FLAG_SERVICE_URL || 'http://localhost:3000';
+
         this.pollingClient = new FeatureFlagClient({
-            serviceUrl: 'http://localhost:3000',
+            serviceUrl,
             refreshInterval: 5000,
             onLog: (msg) => this.emitLog('PollingClient', msg),
         });
 
         // 2. SSE Client
         this.sseClient = new FeatureFlagClient({
-            serviceUrl: 'http://localhost:3000',
+            serviceUrl,
             useSSE: true,
             onLog: (msg) => this.emitLog('SSEClient', msg),
         });
 
         // 3. Filtered Client
         this.filteredClient = new FeatureFlagClient({
-            serviceUrl: 'http://localhost:3000',
+            serviceUrl,
             refreshInterval: 5000,
             prefix: 'beta',
             onLog: (msg) => this.emitLog('FilteredClient', msg),
