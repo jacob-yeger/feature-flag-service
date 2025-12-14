@@ -6,12 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FeatureFlagsService } from './feature-flags.service';
 import { CreateFeatureFlagDto } from './dto/create-feature-flag.dto';
 import { UpdateFeatureFlagDto } from './dto/update-feature-flag.dto';
+import { EtagInterceptor } from '../common/interceptors/etag.interceptor';
 
 @Controller('feature-flags')
+@UseInterceptors(EtagInterceptor)
 export class FeatureFlagsController {
   constructor(private readonly featureFlagsService: FeatureFlagsService) { }
 

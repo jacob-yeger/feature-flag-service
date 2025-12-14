@@ -1,0 +1,17 @@
+{
+    "name": "demo-app",
+    "version": "1.0.0",
+    "description": "Demo App for Feature Flag Service",
+    "main": "dist/main.js",
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/main.js"
+    },
+    "dependencies": {
+        "feature-flag-client": "file:../feature-flag-client"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "@types/node": "^20.0.0"
+    }
+}
