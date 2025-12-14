@@ -16,25 +16,35 @@ export class FeatureFlagClient {
     private readonly refreshInterval: number;
     private readonly prefix?: string;
     private readonly useSSE: boolean;
+    private readonly onLog?: (message: string) => void;
 
     constructor(config: {
         serviceUrl: string;
         refreshInterval?: number;
         prefix?: string;
         useSSE?: boolean;
+        onLog?: (message: string) => void;
     }) {
         this.serviceUrl = config.serviceUrl;
         this.refreshInterval = config.refreshInterval || 10000;
         this.prefix = config.prefix;
         this.useSSE = config.useSSE || false;
+        this.onLog = config.onLog;
     }
 
     async start() {
+        this.log('Starting client...');
         if (this.useSSE) {
             await this.startSSE();
         } else {
             await this.fetchFlags();
             this.intervalId = setInterval(() => this.fetchFlags(), this.refreshInterval);
+        }
+    }
+
+    private log(message: string) {
+        if (this.onLog) {
+            this.onLog(message);
         }
     }
 
@@ -70,9 +80,11 @@ export class FeatureFlagClient {
             });
 
             if (response.status === 304) {
-                // Data not modified
+                this.log(`Polling: 304 Not Modified`);
                 return;
             }
+
+            this.log(`Polling: 200 OK (Received ${response.data.length} flags)`);
 
             const newFlags = new Map<string, boolean>();
             response.data.forEach((flag) => {
@@ -83,7 +95,8 @@ export class FeatureFlagClient {
             if (response.headers['etag']) {
                 this.etag = response.headers['etag'];
             }
-        } catch (error) {
+        } catch (error: any) {
+            this.log(`Polling Error: ${error.message}`);
             console.error('Failed to fetch feature flags:', error);
         }
     }
@@ -97,6 +110,8 @@ export class FeatureFlagClient {
 
         if (!this.eventSource) return;
 
+        this.log(`SSE: Connected to ${url}`);
+
         this.eventSource.onmessage = (event: any) => {
             try {
                 const data = JSON.parse(event.data);
@@ -107,19 +122,24 @@ export class FeatureFlagClient {
 
                 if (type === 'delete') {
                     this.flags.delete(flagOrKey);
+                    this.log(`SSE: Deleted flag ${flagOrKey}`);
                 } else if (type === 'create' || type === 'update') {
                     // Check if filter applies
                     if (this.prefix && !flagOrKey.key.startsWith(this.prefix)) {
+                        this.log(`SSE: Ignored update for ${flagOrKey.key} (Filtered)`);
                         return;
                     }
                     this.flags.set(flagOrKey.key, flagOrKey.isEnabled);
+                    this.log(`SSE: Updated flag ${flagOrKey.key} to ${flagOrKey.isEnabled}`);
                 }
             } catch (err) {
+                this.log('SSE: Error parsing event');
                 console.error('Error parsing SSE event:', err);
             }
         };
 
         this.eventSource.onerror = (err: any) => {
+            this.log('SSE: Connection Error');
             console.error('SSE Error:', err);
         };
     }

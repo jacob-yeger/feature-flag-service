@@ -17,13 +17,5 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
-  },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "demo-ui",
-    "demo-service",
-    "feature-flag-client",
-    "demo-app"
-  ]
+  }
 }

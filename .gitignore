@@ -1,11 +1,7 @@
 # compiled output
-/dist
-/node_modules
-/build
-feature-flag-client/dist
-feature-flag-client/node_modules
-demo-app/dist
-demo-app/node_modules
+dist/
+node_modules/
+build/
 
 # Logs
 logs
