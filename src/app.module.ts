@@ -3,7 +3,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { FeatureFlagsModule } from './feature-flags/feature-flags.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -17,9 +19,11 @@ import { FeatureFlagsModule } from './feature-flags/feature-flags.module';
       }),
       inject: [ConfigService],
     }),
+    RedisModule,
+    EventEmitterModule.forRoot(),
     FeatureFlagsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

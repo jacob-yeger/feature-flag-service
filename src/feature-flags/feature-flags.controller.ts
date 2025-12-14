@@ -7,7 +7,12 @@ import {
   Param,
   Delete,
   UseInterceptors,
+  Sse,
+  MessageEvent,
+  Query,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Observable, fromEvent, map } from 'rxjs';
 import { FeatureFlagsService } from './feature-flags.service';
 import { CreateFeatureFlagDto } from './dto/create-feature-flag.dto';
 import { UpdateFeatureFlagDto } from './dto/update-feature-flag.dto';
@@ -16,7 +21,17 @@ import { EtagInterceptor } from '../common/interceptors/etag.interceptor';
 @Controller('feature-flags')
 @UseInterceptors(EtagInterceptor)
 export class FeatureFlagsController {
-  constructor(private readonly featureFlagsService: FeatureFlagsService) { }
+  constructor(
+    private readonly featureFlagsService: FeatureFlagsService,
+    private readonly eventEmitter: EventEmitter2,
+  ) { }
+
+  @Sse('stream')
+  stream(): Observable<MessageEvent> {
+    return fromEvent(this.eventEmitter, 'feature-flags.updated').pipe(
+      map((data) => ({ data } as MessageEvent)),
+    );
+  }
 
   @Post()
   create(@Body() createFeatureFlagDto: CreateFeatureFlagDto) {
@@ -24,8 +39,8 @@ export class FeatureFlagsController {
   }
 
   @Get()
-  findAll() {
-    return this.featureFlagsService.findAll();
+  findAll(@Query('prefix') prefix?: string) {
+    return this.featureFlagsService.findAll(prefix);
   }
 
   @Get(':key')
